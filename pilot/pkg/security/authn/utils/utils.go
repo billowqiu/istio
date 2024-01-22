@@ -27,12 +27,18 @@ import (
 
 // SupportedCiphers for server side TLS configuration.
 var SupportedCiphers = []string{
-	"ECDHE-ECDSA-AES256-GCM-SHA384",
-	"ECDHE-RSA-AES256-GCM-SHA384",
-	"ECDHE-ECDSA-AES128-GCM-SHA256",
-	"ECDHE-RSA-AES128-GCM-SHA256",
-	"AES256-GCM-SHA384",
-	"AES128-GCM-SHA256",
+	"TLS_SM4_GCM_SM3",
+	"TLS_AES_256_GCM_SHA384",
+	"TLS_CHACHA20_POLY1305_SHA256",
+	"TLS_AES_128_GCM_SHA256",
+	"TLS_AES_128_CCM_8_SHA256",
+	"TLS_AES_128_CCM_SHA256",
+	// "ECDHE-ECDSA-AES256-GCM-SHA384",
+	// "ECDHE-RSA-AES256-GCM-SHA384",
+	// "ECDHE-ECDSA-AES128-GCM-SHA256",
+	// "ECDHE-RSA-AES128-GCM-SHA256",
+	// "AES256-GCM-SHA384",
+	// "AES128-GCM-SHA256",
 }
 
 // BuildInboundTLS returns the TLS context corresponding to the mTLS mode.
@@ -69,7 +75,7 @@ func BuildInboundTLS(mTLSMode model.MutualTLSMode, node *model.Proxy,
 
 	// Set Minimum TLS version to match the default client version and allowed strong cipher suites for sidecars.
 	ctx.CommonTlsContext.TlsParams = &tls.TlsParameters{
-		TlsMinimumProtocolVersion: tls.TlsParameters_TLSv1_2,
+		TlsMinimumProtocolVersion: tls.TlsParameters_TLSv1_3,
 		CipherSuites:              SupportedCiphers,
 	}
 
