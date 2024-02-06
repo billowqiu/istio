@@ -48,6 +48,7 @@ func (s *DiscoveryServer) pushLds(con *XdsConnection, push *model.PushContext, v
 
 func (s *DiscoveryServer) generateRawListeners(con *XdsConnection, push *model.PushContext) ([]*xdsapi.Listener, error) {
 	rawListeners, err := s.ConfigGenerator.BuildListeners(s.Env, con.modelNode, push)
+	adsLog.Infof("LDS: generate listeners for node: %s: %v", con.modelNode.ID, err)
 	if err != nil {
 		adsLog.Warnf("LDS: Failed to generate listeners for node:%s: %v", con.modelNode.ID, err)
 		ldsBuildErrPushes.Add(1)
@@ -55,6 +56,7 @@ func (s *DiscoveryServer) generateRawListeners(con *XdsConnection, push *model.P
 	}
 
 	for _, l := range rawListeners {
+		adsLog.Infof("LDS: Generated listener for node: %s: %v", con.modelNode.ID, l)
 		if err = l.Validate(); err != nil {
 			retErr := fmt.Errorf("LDS: Generated invalid listener for node %v: %v", con.modelNode, err)
 			adsLog.Errorf("LDS: Generated invalid listener for node:%s: %v, %v", con.modelNode.ID, err, l)
