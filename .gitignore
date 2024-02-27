@@ -9,7 +9,7 @@ tools/vagrant/.vagrant/
 *.iml
 .idea/
 # Visual Studio Code
-.vscode/
+# .vscode/
 # Bazel
 /bazel-*
 # vi backups
