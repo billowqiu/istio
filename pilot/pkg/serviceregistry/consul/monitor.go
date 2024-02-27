@@ -63,6 +63,7 @@ func NewConsulMonitor(client *api.Client, period time.Duration) Monitor {
 }
 
 func (m *consulMonitor) Start(stop <-chan struct{}) {
+	log.Debug("[consul] monitor Start")
 	m.run(stop)
 }
 
@@ -151,10 +152,12 @@ func (m *consulMonitor) updateInstanceRecord() {
 }
 
 func (m *consulMonitor) AppendServiceHandler(h ServiceHandler) {
+	log.Debugf("[consul] monitor AppendServiceHandler %v", h)
 	m.serviceHandlers = append(m.serviceHandlers, h)
 }
 
 func (m *consulMonitor) AppendInstanceHandler(h InstanceHandler) {
+	log.Debugf("[consul] monitor AppendInstanceHandler %v", h)
 	m.instanceHandlers = append(m.instanceHandlers, h)
 }
 

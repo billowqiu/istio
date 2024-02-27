@@ -188,6 +188,7 @@ func NewDiscoveryServer(
 		updateChannel:           make(chan *updateReq, 10),
 	}
 
+	// service register handler
 	// Flush cached discovery responses whenever services, service
 	// instances, or routing configuration changes.
 	serviceHandler := func(*model.Service, model.Event) { out.clearCache() }
@@ -202,6 +203,7 @@ func NewDiscoveryServer(
 	// Flush cached discovery responses when detecting jwt public key change.
 	model.JwtKeyResolver.PushFunc = out.ClearCache
 
+	// config register handler
 	if configCache != nil {
 		// TODO: changes should not trigger a full recompute of LDS/RDS/CDS/EDS
 		// (especially mixerclient HTTP and quota)
@@ -364,6 +366,7 @@ func (s *DiscoveryServer) doPush(full bool) {
 // clearCache will clear all envoy caches. Called by service, instance and config handlers.
 // This will impact the performance, since envoy will need to recalculate.
 func (s *DiscoveryServer) clearCache() {
+	adsLog.Debug("xds server config update")
 	s.ConfigUpdate(true)
 }
 
@@ -400,6 +403,8 @@ func (s *DiscoveryServer) handleUpdates(stopCh <-chan struct{}) {
 			}
 			debouncedEvents++
 			configUpdateCounter++
+			adsLog.Infof("update Channel debouncedEvents %d, full %v, DebounceAfter %v",
+				debouncedEvents, r.full, DebounceAfter)
 			// fullPush is sticky if any debounced event requires a fullPush
 			if r.full {
 				fullPush = true
@@ -413,9 +418,9 @@ func (s *DiscoveryServer) handleUpdates(stopCh <-chan struct{}) {
 			// it has been too long or quiet enough
 			if eventDelay >= DebounceMax || quietTime >= DebounceAfter {
 				pushCounter++
-				adsLog.Infof("Push debounce stable[%d] %d: %v since last change, %v since last push, full=%v",
+				adsLog.Infof("Push debounce stable[%d] %d: %v:[%v] since last change, %v:[%v] since last push, full=%v",
 					pushCounter, debouncedEvents,
-					quietTime, eventDelay, fullPush)
+					quietTime, DebounceAfter, eventDelay, DebounceMax, fullPush)
 
 				go s.doPush(fullPush)
 				fullPush = false

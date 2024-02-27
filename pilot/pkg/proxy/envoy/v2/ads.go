@@ -390,7 +390,7 @@ func (s *DiscoveryServer) StreamAggregatedResources(stream ads.AggregatedDiscove
 	if ok {
 		peerAddr = peerInfo.Addr.String()
 	}
-
+	adsLog.Infof("StreamAggregatedResources for peerInfo %v", peerInfo)
 	t0 := time.Now()
 	// rate limit the herd, after restart all endpoints will reconnect to the
 	// poor new pilot and overwhelm it.
@@ -428,7 +428,9 @@ func (s *DiscoveryServer) StreamAggregatedResources(stream ads.AggregatedDiscove
 	for {
 		// Block until either a request is received or a push is triggered.
 		select {
+		// from xds request
 		case discReq, ok := <-reqChannel:
+			adsLog.Infof("xds request %v", discReq)
 			if !ok {
 				// Remote side closed connection.
 				return receiveError
@@ -613,6 +615,7 @@ func (s *DiscoveryServer) StreamAggregatedResources(stream ads.AggregatedDiscove
 			} else {
 				con.mu.Unlock()
 			}
+		// from config or service update
 		case pushEv := <-con.pushChannel:
 			// It is called when config changes.
 			// This is not optimized yet - we should detect what changed based on event and only
@@ -623,7 +626,7 @@ func (s *DiscoveryServer) StreamAggregatedResources(stream ads.AggregatedDiscove
 			// monitored 'routes'. Same for CDS/EDS interval.
 			// It is very tricky to handle due to the protocol - but the periodic push recovers
 			// from it.
-
+			adsLog.Infof("xds push %v to con %v", pushEv, con)
 			err := s.pushConnection(con, pushEv)
 			if err != nil {
 				return nil
@@ -858,6 +861,7 @@ func (s *DiscoveryServer) startPush(version string, push *model.PushContext, ful
 	pending := []*XdsConnection{}
 	for _, v := range adsClients {
 		if id != "" && id != v.modelNode.IPAddresses[0] {
+			adsLog.Warnf("ADS: push skip connection id %s, ip address %s", id, v.modelNode.IPAddresses[0])
 			continue
 		}
 		pending = append(pending, v)
@@ -877,6 +881,7 @@ func (s *DiscoveryServer) startPush(version string, push *model.PushContext, ful
 	for {
 
 		if len(pending) == 0 {
+			adsLog.Info("xdsConnection pending empty, break push loop")
 			break
 		}
 		// Using non-blocking push has problems if 2 pushes happen too close to each other
@@ -923,9 +928,11 @@ func (s *DiscoveryServer) startPush(version string, push *model.PushContext, ful
 				version:            version,
 				edsUpdatedServices: edsOnly,
 			}:
+				adsLog.Infof("XdsEvent to client %v", client)
 				if !timer.Stop() {
 					<-timer.C
 				}
+				adsLog.Infof("XdsEvent to client %v end", client)
 			case <-client.stream.Context().Done(): // grpc stream was closed
 				adsLog.Infof("Client closed connection %v", client.ConID)
 			case <-timer.C:
@@ -959,6 +966,7 @@ func (s *DiscoveryServer) startPush(version string, push *model.PushContext, ful
 func (s *DiscoveryServer) addCon(conID string, con *XdsConnection) {
 	adsClientsMutex.Lock()
 	defer adsClientsMutex.Unlock()
+	adsLog.Infof("ADS: Add connection for node:%v.", conID)
 	adsClients[conID] = con
 	xdsClients.Set(float64(len(adsClients)))
 	if con.modelNode != nil {
@@ -974,6 +982,7 @@ func (s *DiscoveryServer) removeCon(conID string, con *XdsConnection) {
 	adsClientsMutex.Lock()
 	defer adsClientsMutex.Unlock()
 
+	adsLog.Infof("ADS: Removing connection for node:%v.", conID)
 	for _, c := range con.Clusters {
 		s.removeEdsCon(c, conID)
 	}
@@ -999,6 +1008,7 @@ func (conn *XdsConnection) send(res *xdsapi.DiscoveryResponse) error {
 	done := make(chan error, 1)
 	// hardcoded for now - not sure if we need a setting
 	t := time.NewTimer(SendTimeout)
+	adsLog.Infof("Send DiscoveryResponse %v", res)
 	go func() {
 		err := conn.stream.Send(res)
 		done <- err

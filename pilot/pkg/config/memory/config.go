@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"istio.io/istio/pilot/pkg/model"
+	"istio.io/pkg/log"
 )
 
 var (
@@ -72,6 +73,7 @@ func (cr *store) Get(typ, name, namespace string) *model.Config {
 func (cr *store) List(typ, namespace string) ([]model.Config, error) {
 	data, exists := cr.data[typ]
 	if !exists {
+		log.Debugf("[memory configstore] List typ, key, namespace [%s:%s] empty", typ, namespace)
 		return nil, nil
 	}
 	out := make([]model.Config, 0, len(cr.data[typ]))
@@ -92,6 +94,7 @@ func (cr *store) List(typ, namespace string) ([]model.Config, error) {
 			return true
 		})
 	}
+	log.Debugf("[memory config] List typ, key, namespace [%s:%s], out: %v", typ, namespace, out)
 	return out, nil
 }
 

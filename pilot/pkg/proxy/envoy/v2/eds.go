@@ -264,8 +264,11 @@ func (s *DiscoveryServer) updateServiceShards(push *model.PushContext) error {
 	// may individually update their endpoints incrementally
 	for _, svc := range push.Services(nil) {
 		for _, registry := range nonK8sRegistries {
+			adsLog.Debugf("filter registry %s, with svc %s", registry, svc.Hostname)
+			svcHostName := svc.Hostname
 			// in case this svc does not belong to the registry
 			if svc, _ := registry.GetService(svc.Hostname); svc == nil {
+				adsLog.Warnf("Skip svc host %s", svcHostName)
 				continue
 			}
 

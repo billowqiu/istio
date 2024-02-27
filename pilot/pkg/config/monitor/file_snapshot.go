@@ -55,6 +55,7 @@ func NewFileSnapshot(root string, descriptor model.ConfigDescriptor) *FileSnapsh
 	for _, k := range types {
 		if schema, ok := model.IstioConfigTypes.GetByType(k); ok {
 			snapshot.configTypeFilter[schema.Type] = true
+			log.Debugf("init snapshot config type %s", schema.Type)
 		}
 	}
 
@@ -85,6 +86,7 @@ func (f *FileSnapshot) ReadConfigFiles() ([]*model.Config, error) {
 
 		// Filter any unsupported types before appending to the result.
 		for _, cfg := range configs {
+			log.Debugf("parse file %s to config %v", path, cfg)
 			if !f.configTypeFilter[cfg.Type] {
 				continue
 			}

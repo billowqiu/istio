@@ -126,12 +126,14 @@ func (m *Monitor) checkAndUpdate() {
 }
 
 func (m *Monitor) createConfig(c *model.Config) {
+	log.Debugf("[memory config] createConfig [%v]", c)
 	if _, err := m.store.Create(*c); err != nil {
 		log.Warnf("Failed to create config %s %s/%s: %v (%+v)", c.Type, c.Namespace, c.Name, err, *c)
 	}
 }
 
 func (m *Monitor) updateConfig(c *model.Config) {
+	log.Debugf("[memory config] updateConfig [%v]", c)
 	// Set the resource version based on the existing config.
 	if prev := m.store.Get(c.Type, c.Name, c.Namespace); prev != nil {
 		c.ResourceVersion = prev.ResourceVersion
@@ -143,6 +145,7 @@ func (m *Monitor) updateConfig(c *model.Config) {
 }
 
 func (m *Monitor) deleteConfig(c *model.Config) {
+	log.Debugf("[memory config] deleteConfig [%v]", c)
 	if err := m.store.Delete(c.Type, c.Name, c.Namespace); err != nil {
 		log.Warnf("Failed to delete config (%+v): %v ", *c, err)
 	}

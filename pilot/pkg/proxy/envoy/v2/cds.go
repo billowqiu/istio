@@ -55,6 +55,7 @@ func (s *DiscoveryServer) pushCds(con *XdsConnection, push *model.PushContext, v
 		con.CDSClusters = rawClusters
 	}
 	response := con.clusters(rawClusters)
+	adsLog.Infof("CDS: generate clusters for ads response %v", response)
 	err = con.send(response)
 	if err != nil {
 		adsLog.Warnf("CDS: Send failure %s: %v", con.ConID, err)
@@ -71,7 +72,7 @@ func (s *DiscoveryServer) pushCds(con *XdsConnection, push *model.PushContext, v
 
 func (s *DiscoveryServer) generateRawClusters(node *model.Proxy, push *model.PushContext) ([]*xdsapi.Cluster, error) {
 	rawClusters, err := s.ConfigGenerator.BuildClusters(s.Env, node, push)
-	adsLog.Infof("CDS: generate clusters for node:%s: %v", node.ID, s.Env)
+	adsLog.Infof("CDS: generate clusters for node:%s: %v, rawClusters %v", node.ID, s.Env, rawClusters)
 	if err != nil {
 		adsLog.Warnf("CDS: Failed to generate clusters for node:%s: %v", node.ID, err)
 		cdsBuildErrPushes.Add(1)
@@ -79,7 +80,7 @@ func (s *DiscoveryServer) generateRawClusters(node *model.Proxy, push *model.Pus
 	}
 
 	for _, c := range rawClusters {
-		adsLog.Errorf("CDS: Generated cluster for node:%s: %v", node.ID, c)
+		adsLog.Infof("CDS: Generated cluster for node:%s: %v", node.ID, c)
 		if err = c.Validate(); err != nil {
 			retErr := fmt.Errorf("CDS: Generated invalid cluster for node %v: %v", node, err)
 			adsLog.Errorf("CDS: Generated invalid cluster for node:%s: %v, %v", node.ID, err, c)

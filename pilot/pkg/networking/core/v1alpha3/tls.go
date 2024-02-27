@@ -71,9 +71,13 @@ func getConfigsForHost(host model.Hostname, configs []model.Config) []model.Conf
 	for index := range configs {
 		virtualService := configs[index].Spec.(*v1alpha3.VirtualService)
 		for _, vsHost := range virtualService.Hosts {
+			// extract host form virtualService crd
 			if model.Hostname(vsHost).Matches(host) {
 				svcConfigs = append(svcConfigs, configs[index])
+				log.Infof("vsHost %s matches host %s", vsHost, host)
 				break
+			} else {
+				log.Infof("vsHost %s not matches host %s", vsHost, host)
 			}
 		}
 	}

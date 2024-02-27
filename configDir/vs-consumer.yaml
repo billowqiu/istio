@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: consumer-route
+  namespace: service.consul
+spec:
+  hosts:
+  - consumer-demo
+  http:
+  - match:
+    - headers:
+        User-Agent:
+          regex: .*(Chrome/([\d.]+)).*
+    route:
+    - destination:
+        host: consumer-demo
+        subset: v2
+  - route:
+    - destination:
+        host: consumer-demo
+        subset: v1

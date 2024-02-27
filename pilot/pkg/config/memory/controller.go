@@ -18,6 +18,7 @@ import (
 	"errors"
 
 	"istio.io/istio/pilot/pkg/model"
+	"istio.io/pkg/log"
 )
 
 type controller struct {
@@ -54,6 +55,7 @@ func (c *controller) ConfigDescriptor() model.ConfigDescriptor {
 }
 
 func (c *controller) Get(typ, key, namespace string) *model.Config {
+	log.Debugf("[memory config] Get typ, key, namespace [%s:%s:%s]", typ, key, namespace)
 	return c.configStore.Get(typ, key, namespace)
 }
 
@@ -64,6 +66,7 @@ func (c *controller) Create(config model.Config) (revision string, err error) {
 			event:  model.EventAdd,
 		})
 	}
+	log.Debugf("[memory config] Create config [%v], revision %s", config, revision)
 	return
 }
 
@@ -74,10 +77,12 @@ func (c *controller) Update(config model.Config) (newRevision string, err error)
 			event:  model.EventUpdate,
 		})
 	}
+	log.Debugf("[memory config] Update config [%v], revision %s", config, newRevision)
 	return
 }
 
 func (c *controller) Delete(typ, key, namespace string) (err error) {
+	log.Debugf("[memory config] Delete typ, key, namespace [%s:%s:%s]", typ, key, namespace)
 	if config := c.Get(typ, key, namespace); config != nil {
 		if err = c.configStore.Delete(typ, key, namespace); err == nil {
 			c.monitor.ScheduleProcessEvent(ConfigEvent{
@@ -91,5 +96,7 @@ func (c *controller) Delete(typ, key, namespace string) (err error) {
 }
 
 func (c *controller) List(typ, namespace string) ([]model.Config, error) {
+	log.Debugf("[memory config] List typ, key, namespace [%s:%s]", typ, namespace)
+
 	return c.configStore.List(typ, namespace)
 }

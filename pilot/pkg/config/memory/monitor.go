@@ -56,6 +56,7 @@ func NewBufferedMonitor(store model.ConfigStore, bufferSize int) Monitor {
 	handlers := make(map[string][]Handler)
 
 	for _, typ := range store.ConfigDescriptor().Types() {
+		log.Debugf("[memory config] Config Type %s init handler", typ)
 		handlers[typ] = make([]Handler, 0)
 	}
 
@@ -88,7 +89,7 @@ func (m *configstoreMonitor) Run(stop <-chan struct{}) {
 
 func (m *configstoreMonitor) processConfigEvent(ce ConfigEvent) {
 	if _, exists := m.handlers[ce.config.Type]; !exists {
-		log.Warnf("Config Type %s does not exist in config store", ce.config.Type)
+		log.Warnf("[memory config] Config Type %s does not exist in config store", ce.config.Type)
 		return
 	}
 	m.applyHandlers(ce.config, ce.event)
@@ -100,6 +101,7 @@ func (m *configstoreMonitor) AppendEventHandler(typ string, h Handler) {
 
 func (m *configstoreMonitor) applyHandlers(config model.Config, e model.Event) {
 	for _, f := range m.handlers[config.Type] {
+		log.Infof("[memory config] applyHandlers for config %v with event %v", config, e)
 		f(config, e)
 	}
 }

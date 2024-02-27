@@ -85,7 +85,7 @@ func (c *Controller) getServices() (map[string][]string, error) {
 		log.Warnf("Could not retrieve services from consul: %v", err)
 		return nil, err
 	}
-
+	log.Debugf("[consul] get services %v", data)
 	return data, nil
 }
 
@@ -96,7 +96,9 @@ func (c *Controller) getCatalogService(name string, q *api.QueryOptions) ([]*api
 		log.Warnf("Could not retrieve service catalogue from consul: %v", err)
 		return nil, err
 	}
-
+	for idx, endpoint := range endpoints {
+		log.Debugf("[consul] get catalog services endpoint[%d]->%v", idx, endpoint)
+	}
 	return endpoints, nil
 }
 
@@ -212,6 +214,7 @@ func (c *Controller) GetProxyWorkloadLabels(proxy *model.Proxy) (model.LabelsCol
 
 // Run all controllers until a signal is received
 func (c *Controller) Run(stop <-chan struct{}) {
+	log.Debug("[consul] controller Run")
 	c.monitor.Start(stop)
 }
 

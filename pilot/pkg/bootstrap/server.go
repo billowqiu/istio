@@ -104,7 +104,7 @@ const (
 
 var (
 	// FilepathWalkInterval dictates how often the file system is walked for config
-	FilepathWalkInterval = 100 * time.Millisecond
+	FilepathWalkInterval = 1000 * time.Millisecond
 
 	// PilotCertDir is the default location for mTLS certificates used by pilot
 	// Visible for tests - at runtime can be set by PILOT_CERT_DIR environment variable.
@@ -693,7 +693,7 @@ func (s *Server) initConfigController(args *PilotArgs) error {
 	} else if args.Config.FileDir != "" {
 		store := memory.Make(model.IstioConfigTypes)
 		configController := memory.NewController(store)
-
+		// file monitor will call controller[Create,Delete,Update,Get]
 		err := s.makeFileMonitor(args.Config.FileDir, configController)
 		if err != nil {
 			return err
@@ -701,6 +701,7 @@ func (s *Server) initConfigController(args *PilotArgs) error {
 
 		s.configController = configController
 	} else {
+		// default use k8s config controller
 		controller, err := s.makeKubeConfigController(args)
 		if err != nil {
 			return err
