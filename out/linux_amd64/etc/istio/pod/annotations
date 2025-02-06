@@ -1,0 +1,6 @@
+kubernetes.io/config.seen="2024-07-18T13:51:31.520196624Z"
+kubernetes.io/config.source="api"
+prometheus.io/path="/stats/prometheus"
+prometheus.io/port="15020"
+prometheus.io/scrape="true"
+sidecar.istio.io/inject="false"

@@ -1,0 +1,15 @@
+accessLogEncoding: JSON
+accessLogFile: /dev/stdout
+defaultConfig:
+  discoveryAddress: istiod.istio-system.svc:30113
+  proxyMetadata:
+    BOOTSTRAP_XDS_AGENT: "true"
+    ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+    ISTIO_META_DNS_CAPTURE: "true"
+    SECRET_TTL: 5m
+  tracing:
+    zipkin:
+      address: zipkin.istio-system:9411
+enablePrometheusMerge: true
+rootNamespace: istio-system
+trustDomain: cluster.local

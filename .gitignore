@@ -50,9 +50,9 @@ security/cmd/node_agent/na/pkey
 tools/istioctl.bash
 vendor
 # Contains the built artifacts
-out/
-etc/
-var/
+# out/
+# etc/
+# var/
 # Go compiled tests
 *.test
 # MacOS extended attributes
