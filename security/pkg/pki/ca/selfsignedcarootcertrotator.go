@@ -83,6 +83,7 @@ func (rotator *SelfSignedCARootCertRotator) Run(stopCh chan struct{}) {
 			"starting root cert rotator.", rotator.backOffTime.String())
 		select {
 		case <-time.After(rotator.backOffTime):
+			// rotator cert
 			rootCertRotatorLog.Infof("Jitter complete, start rotator.")
 		case <-stopCh:
 			rootCertRotatorLog.Info("Received stop signal, so stop the root cert rotator.")

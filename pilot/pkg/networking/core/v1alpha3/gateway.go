@@ -366,6 +366,7 @@ func (configgen *ConfigGeneratorImpl) buildGatewayHTTPRouteConfig(node *model.Pr
 		var exists bool
 
 		if virtualServices, exists = gatewayVirtualServices[gatewayName]; !exists {
+			// 所有和此 gateway 绑定的 virtualservices
 			virtualServices = push.VirtualServicesForGateway(node, gatewayName)
 			gatewayVirtualServices[gatewayName] = virtualServices
 		}
@@ -450,6 +451,7 @@ func (configgen *ConfigGeneratorImpl) buildGatewayHTTPRouteConfig(node *model.Pr
 	if len(vHostDedupMap) == 0 {
 		port := int(servers[0].Port.Number)
 		log.Warnf("constructed http route config for route %s on port %d with no vhosts; Setting up a default 404 vhost", routeName, port)
+		// 没有 vhosts 绑定，弄个默认的 blackhole；通常是因为没有 virtualservice 关联导致
 		virtualHosts = []*route.VirtualHost{{
 			Name:    util.DomainName("blackhole", port),
 			Domains: []string{"*"},
@@ -652,7 +654,9 @@ func buildGatewayConnectionManager(proxyConfig *meshconfig.ProxyConfig, node *mo
 // TLS mode      | Mesh-wide SDS | Ingress SDS | Resulting Configuration
 // SIMPLE/MUTUAL |    ENABLED    |   ENABLED   | support SDS at ingress gateway to terminate SSL communication outside the mesh
 // ISTIO_MUTUAL  |    ENABLED    |   DISABLED  | support SDS at gateway to terminate workload mTLS, with internal workloads
-// 											   | for egress or with another trusted cluster for ingress)
+//
+//	| for egress or with another trusted cluster for ingress)
+//
 // ISTIO_MUTUAL  |    DISABLED   |   DISABLED  | use file-mounted secret paths to terminate workload mTLS from gateway
 //
 // Note that ISTIO_MUTUAL TLS mode and ingressSds should not be used simultaneously on the same ingress gateway.

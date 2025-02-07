@@ -175,6 +175,7 @@ func (s *Server) initK8SConfigStore(args *PilotArgs) error {
 						Reason: []model.TriggerReason{model.GlobalUpdate},
 					})
 					<-leaderStop
+					// gateway 的推送逻辑判断
 					log.Infof("Stopping gateway status writer")
 					gwc.SetStatusWrite(false)
 				}).

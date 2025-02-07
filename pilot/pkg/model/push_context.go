@@ -1935,7 +1935,10 @@ func (ps *PushContext) mergeGateways(proxy *Proxy) *MergedGateway {
 		configs = ps.gatewayIndex.all
 	}
 
+	log.Infof("merging gateway configs %v", configs)
+
 	for _, cfg := range configs {
+		log.Infof("merging gateway config %v", cfg)
 		gw := cfg.Spec.(*networking.Gateway)
 		if gwsvcstr, f := cfg.Annotations[InternalGatewayServiceAnnotation]; f {
 			gwsvcs := strings.Split(gwsvcstr, ",")
@@ -1945,8 +1948,10 @@ func (ps *PushContext) mergeGateways(proxy *Proxy) *MergedGateway {
 			}
 			matchingInstances := make([]*ServiceInstance, 0, len(proxy.ServiceInstances))
 			for _, si := range proxy.ServiceInstances {
+				log.Infof("proxy.ServiceInstance %v", si)
 				if _, f := known[si.Service.Hostname]; f && si.Service.Attributes.Namespace == cfg.Namespace {
 					matchingInstances = append(matchingInstances, si)
+					log.Infof("matchingInstances %v with namespace %v", si, cfg.Namespace)
 				}
 			}
 			// Only if we have a matching instance should we apply the configuration
@@ -1957,14 +1962,30 @@ func (ps *PushContext) mergeGateways(proxy *Proxy) *MergedGateway {
 			// no selector. Applies to all workloads asking for the gateway
 			gatewayInstances = append(gatewayInstances, gatewayWithInstances{cfg, true, proxy.ServiceInstances})
 		} else {
+			// apiVersion: networking.istio.io/v1alpha3
+			// kind: Gateway
+			// metadata:
+			// name: coolstore-gateway
+			// spec:
+			// selector:
+			// 	istio: ingressgateway		// 根据 gateway 的 selector 来匹配
+			// servers:
+			// - port:
+			// 	number: 18880
+			// 	name: http
+			// 	protocol: HTTP
+			// 	hosts:
+			// 	- "webapp.istioinaction.io"
 			gatewaySelector := labels.Instance(gw.GetSelector())
 			var workloadLabels labels.Collection
 			// This should never happen except in tests.
 			if proxy.Metadata != nil && len(proxy.Metadata.Labels) > 0 {
 				workloadLabels = labels.Collection{proxy.Metadata.Labels}
 			}
+			log.Infof("workloadLabels %v", workloadLabels)
 			if workloadLabels.IsSupersetOf(gatewaySelector) {
 				gatewayInstances = append(gatewayInstances, gatewayWithInstances{cfg, true, proxy.ServiceInstances})
+				log.Infof("workloadLabels match gatewaySelector %v", gatewaySelector)
 			}
 		}
 	}
